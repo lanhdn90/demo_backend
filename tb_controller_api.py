@@ -1,3 +1,4 @@
+from typing import Optional
 import settings
 
 class Result:
@@ -16,6 +17,7 @@ class TbControllerApis:
     async def login(self, username, password):
         resource_path = "/auth/login"
         body = {"username": username, "password": password}
+        print(body)
         async with settings.http_client.post(
                 url=f"{self.base_path}{resource_path}", json=body) as resp:
             try:
@@ -54,6 +56,36 @@ class TbControllerApis:
                 json=body) as resp:
             try:
                 result = Result(resp.status, await resp.text())
+            except:
+                result = Result(resp.status, None)
+            return result
+
+    async def read_tenant_assets(
+        self,
+        type,
+        text_search,
+        page_size,
+        page
+    ):
+        resource_path = f"/tenant/assets"
+        params = {
+            "pageSize": page_size,
+            "page": page,
+            "type": type,
+            "textSearch": text_search,
+        }
+        null_params = []
+        for key in params:
+            if params[key] == None:
+                null_params.append(key)
+        for key in null_params:
+            params.pop(key)     
+        async with settings.http_client.get(
+                url=f"{self.base_path}{resource_path}",
+                headers=self.headers,
+                params=params) as resp:
+            try:
+                result = Result(resp.status, await resp.json())
             except:
                 result = Result(resp.status, None)
             return result

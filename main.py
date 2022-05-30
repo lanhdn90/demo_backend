@@ -39,11 +39,11 @@ async def shutdown_event():
 
 
 # Import routers
-from routers import auth
-# , asset_tree, timeseries, alarm, asset, meter, device_profile, gateway, dashboard, env_sensor, consumption
+from routers import auth, asset
+# , asset_tree, timeseries, alarm,  meter, device_profile, gateway, dashboard, env_sensor, consumption
 app.include_router(auth.router)
 # app.include_router(asset_tree.router)
-# app.include_router(asset.router)
+app.include_router(asset.router)
 # app.include_router(device_profile.router)
 # app.include_router(meter.router)
 # app.include_router(gateway.router)
