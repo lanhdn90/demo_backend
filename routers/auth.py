@@ -11,9 +11,11 @@ router = APIRouter()
 
 token = APIKeyHeader(name="token")
 
+
 class UserPW(BaseModel):
     username: str
     password: str
+
 
 class Token(BaseModel):
     token: str
@@ -22,6 +24,7 @@ class Token(BaseModel):
 
 class RefreshToken(BaseModel):
     refresh_token: str
+
 
 class User(BaseModel):
     id: str
@@ -34,6 +37,7 @@ class User(BaseModel):
     name: str
     tenant_id: str
     status: str
+
 
 class ChangePasswordForm(BaseModel):
     current_password: str
@@ -52,6 +56,7 @@ async def login(user_pw: UserPW):
         "refresh_token": resp.data["refreshToken"]
     }
 
+
 @router.post("/api/v1/auth/token", response_model=Token, tags=["Auth"])
 async def refresh_token(refresh_token: RefreshToken):
     tb_controller_apis_client = TbControllerApis("")
@@ -63,6 +68,7 @@ async def refresh_token(refresh_token: RefreshToken):
         "token": resp.data["token"],
         "refresh_token": resp.data["refreshToken"]
     }
+
 
 @router.get("/api/v1/auth/user", response_model=User, tags=["Auth"])
 async def get_user(token: APIKeyHeader = Depends(token)):
@@ -93,6 +99,7 @@ async def get_user(token: APIKeyHeader = Depends(token)):
         "tenant_id": user.get("tenantId").get("id"),
         "status": status,
     }
+
 
 @router.put("/api/v1/auth/change_password", tags=["Auth"])
 async def change_password(body: ChangePasswordForm, token: APIKeyHeader = Depends(token)):
