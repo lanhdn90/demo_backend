@@ -1,3 +1,4 @@
+from sqlalchemy import true
 import settings
 import math
 import pandas
@@ -18,7 +19,8 @@ def get_asset_child(parent_id):
             AND relation_type = 'Belong' ) root_a
     LEFT JOIN asset a ON (root_a.to_id = a.id);
     """
-    df = pandas.read_sql_query(sql=query, con=conn, params=(parent_id,))
+    df = pandas.read_sql_query(
+        sql=query, con=conn, params=(parent_id,))
     data = [
         {
             "id": i["id"],
@@ -37,11 +39,15 @@ def get_asset_parent(tenant_id, page_size, page):
         count(*)
     FROM
         Asset
-    WHERE
-        type IN ('Post','Truck','Storage')
-        AND tenant_id = %s;
+    WHERE tenant_id = %s
+        AND id NOT IN (SELECT 
+            to_id   
+        FROM
+            relation
+        WHERE  relation_type = 'Belong' ) 
     """
-    df = pandas.read_sql_query(sql=query, con=conn, params=(tenant_id,))
+    df = pandas.read_sql_query(
+        sql=query, con=conn, params=(tenant_id,))
     total_elements = int(df["count"][0])
     total_pages = math.ceil(total_elements/page_size)
     has_next = True if total_pages > (page + 1) else False
@@ -57,9 +63,12 @@ def get_asset_parent(tenant_id, page_size, page):
         *
     FROM
         Asset
-    WHERE
-        type IN ('Post','Truck','Storage')
-        AND tenant_id = %s
+    WHERE tenant_id = %s
+        AND id NOT IN (SELECT 
+            to_id   
+        FROM
+            relation
+        WHERE  relation_type = 'Belong' )
     LIMIT %s
     OFFSET %s;
     """
@@ -87,7 +96,7 @@ def get_asset_parent(tenant_id, page_size, page):
                 "id": key["id"],
                 "name": key["name"],
                 "type": key["type"],
-                "children": get_asset_child(key["id"])
+                "children": get_asset_child(key["id"],)
             })
     return {
         "total_elements": total_elements,
@@ -95,3 +104,26 @@ def get_asset_parent(tenant_id, page_size, page):
         "has_next": has_next,
         "data": new_list
     }
+
+
+def get_test(tenant_id, page_size, page):
+    conn = settings.conn
+    query = """
+    SELECT
+        *
+    FROM
+        Asset
+    WHERE tenant_id = %s
+        AND id NOT IN (SELECT 
+            to_id   
+        FROM
+            relation
+        WHERE  relation_type = 'Belong' )
+        AND UPPER(name) ~ %s;
+    LIMIT %s
+    OFFSET %s;
+    """
+    df = pandas.read_sql_query(
+        sql=query, con=conn, params=(tenant_id, page_size, page))
+    print(df)
+    return true
